@@ -1,5 +1,13 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
+    "name": "surface-defect-detection",
+    "version": "1.0.0",
+    "description": "Surface Defect Detection API - AI-powered surface inspection system",
+    "author": {
+        "name": "Mohsen Hesham",
+        "email": "mohsenhesham.110@gmail.com"
+    },
+    "license": "MIT",
     "private": true,
     "type": "module",
     "scripts": {
