@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 23, 2026 at 02:50 AM
+-- Generation Time: Feb 23, 2026 at 03:26 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -187,7 +187,8 @@ INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `n
 (5, 'App\\Models\\User', 1, 'api-token', '0b5260735844824c14a56b1ae0f08d621a626c8fe6f14652a376d0cf9bbf786f', '[\"*\"]', NULL, NULL, '2026-02-22 21:18:13', '2026-02-22 21:18:13'),
 (7, 'App\\Models\\User', 1, 'api-token', '1b6a8d8f9646d2847319b616abf0cf34df4c3a77de24bb5bebe1cdfcde8c515f', '[\"*\"]', NULL, NULL, '2026-02-22 21:31:42', '2026-02-22 21:31:42'),
 (8, 'App\\Models\\User', 1, 'api-token', 'cfdd25ff12b9e6d9058017b69286c3ec681e646ddc11dd55bf8a30769f639c51', '[\"*\"]', NULL, NULL, '2026-02-22 21:31:52', '2026-02-22 21:31:52'),
-(10, 'App\\Models\\User', 1, 'api-token', 'b2c6f5029b01b548e8665081581b5eb41c5e3c697efd6bb2d778b570047805b2', '[\"*\"]', '2026-02-22 22:19:02', NULL, '2026-02-22 22:15:49', '2026-02-22 22:19:02');
+(10, 'App\\Models\\User', 1, 'api-token', 'b2c6f5029b01b548e8665081581b5eb41c5e3c697efd6bb2d778b570047805b2', '[\"*\"]', '2026-02-22 22:19:02', NULL, '2026-02-22 22:15:49', '2026-02-22 22:19:02'),
+(11, 'App\\Models\\User', 16, 'api-token', '20ceeddc8cc0a31091e0cd944afdea8be764e7dab9fee75ab53f7f94eaaa5397', '[\"*\"]', NULL, NULL, '2026-02-23 00:24:31', '2026-02-23 00:24:31');
 
 -- --------------------------------------------------------
 
@@ -271,16 +272,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `full_name`, `email`, `phone`, `password`, `avatar`, `email_verified_at`, `phone_verified_at`, `account_status`, `created_at`, `updated_at`) VALUES
-(2, 'sd', 'mohsen@gmail.com2', '011009593012', '$2y$12$VmlaZm9.B2JP0v0tfqRnZOq1gic8eyuqGxB26HP1uesz2SaO1Y6su', NULL, NULL, NULL, 'active', '2026-02-19 12:50:31', '2026-02-22 17:56:39'),
-(5, 'mohsen2', 'moh3sen@gmail.com', '011009593012', '$2y$12$3DI4C5EN4/xJE.c.2IhH3uSU41OZ7vmB1v0KBOimUX77pB9JRwXce', NULL, NULL, NULL, 'active', '2026-02-19 12:52:14', '2026-02-22 17:56:39'),
-(8, 'mohsen', 'mohsen.231123@gmail.com', '01140459301', '$2y$12$vzYA59WFTD/cOLBLhbeI1e3OnrZURFHSNIvSzNjZg4Ld0iPtbKU3S', NULL, NULL, NULL, 'pending', '2026-02-22 17:13:25', '2026-02-22 17:13:25'),
-(9, 'mohsen', 'mohsen.431123@gmail.com', '01140459501', '$2y$12$wmXrOENWYvPUHopzvgmbz.bh6/mfac5KwGuIr/kkGpu3sMHAS5HDG', NULL, NULL, NULL, 'pending', '2026-02-22 17:17:38', '2026-02-22 17:17:38'),
-(10, 'mohsen', 'mohsen.131123@gmail.com', '01144459501', '$2y$12$MBmKjBjczatAC59JCEiLKuEpDgvnuSzDX9ghqcrpRP409EFeW0MGG', NULL, NULL, NULL, 'pending', '2026-02-22 17:23:28', '2026-02-22 17:23:28'),
-(11, 'Smoke Test', 'smoke_1771792682@example.com', '01112223344', '$2y$12$/rsFyRm0JJstpt8vY/cccOk457SHzSTStni4Tq4EHjkLB3sGfXMpa', NULL, NULL, NULL, 'pending', '2026-02-22 18:38:03', '2026-02-22 18:50:17'),
-(12, 'Test User', 'test_1771794121@example.com', '01098765432', '$2y$12$5NqeeuDvIAoOnPxKpbkj1uzzgTrsbeSVn21khkAIj1tIS/2d18CpG', NULL, NULL, NULL, 'pending', '2026-02-22 19:02:02', '2026-02-22 19:02:02'),
-(13, 'Test User', 'test_1771794184@example.com', '8024288797', '$2y$12$9IjJOwGjTetqyYNaBJxokuA909foloHhRHQvy7c5WayUCbX4Fj2cC', NULL, NULL, NULL, 'pending', '2026-02-22 19:03:05', '2026-02-22 19:03:05'),
-(14, 'mohsenhesham', 'mohsenre@gmail.com', '01100949494', '$2y$12$9zuwnjL2g4gZZA6MeIkhYOwa9Pf3iP8U73hVtOm96FNmpJFgQkOPS', NULL, NULL, NULL, 'pending', '2026-02-22 20:11:31', '2026-02-22 20:11:31'),
-(15, 'Flow Test', 'flow_1771802988@example.com', '01335290162', '$2y$12$qfcMX2ryF7HYU3cJDHL3i.3xYHuXs4BW8xTH690mxADnJFgvoFLzq', NULL, NULL, NULL, 'active', '2026-02-22 21:29:49', '2026-02-22 21:29:49');
+(16, 'Mohsen', 'mohsenhesham.110@gmail.com', '01100959301', '$2y$12$oMAiLnGjderT35GfhKlFtu3w3yV/Mr0ZB8eE3j7LJSE1ENAwECcmS', NULL, NULL, NULL, 'active', '2026-02-23 00:23:54', '2026-02-23 00:23:54');
 
 -- --------------------------------------------------------
 
@@ -304,14 +296,7 @@ CREATE TABLE `user_settings` (
 --
 
 INSERT INTO `user_settings` (`id`, `user_id`, `language`, `theme`, `push_notifications`, `email_notifications`, `created_at`, `updated_at`) VALUES
-(3, 8, 'en', 'light', 1, 1, '2026-02-22 17:13:25', '2026-02-22 17:13:25'),
-(4, 9, 'en', 'light', 1, 1, '2026-02-22 17:17:38', '2026-02-22 17:17:38'),
-(5, 10, 'en', 'light', 1, 1, '2026-02-22 17:23:28', '2026-02-22 17:23:28'),
-(6, 11, 'en', 'light', 1, 1, '2026-02-22 18:38:03', '2026-02-22 18:38:03'),
-(7, 12, 'en', 'light', 1, 1, '2026-02-22 19:02:02', '2026-02-22 19:02:02'),
-(8, 13, 'en', 'light', 1, 1, '2026-02-22 19:03:05', '2026-02-22 19:03:05'),
-(9, 14, 'en', 'light', 1, 1, '2026-02-22 20:11:31', '2026-02-22 20:11:31'),
-(10, 15, 'en', 'light', 1, 1, '2026-02-22 21:29:49', '2026-02-22 21:29:49');
+(11, 16, 'en', 'light', 1, 1, '2026-02-23 00:23:55', '2026-02-23 00:23:55');
 
 --
 -- Indexes for dumped tables
@@ -453,7 +438,7 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `scans`
@@ -471,13 +456,13 @@ ALTER TABLE `scan_statistics`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `user_settings`
 --
 ALTER TABLE `user_settings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Constraints for dumped tables
