@@ -198,6 +198,40 @@ GET http://localhost:8000/api/auth/me
 
 **users table**
 - id, full_name, email, phone, password, avatar
+
+---
+
+## Real Email / OTP Setup
+
+To send verification codes to a real Gmail account you must configure the mail driver and create a mailable. The codebase now uses the `VerificationCode` mailable in
+`App\Mail\VerificationCode` and a simple Blade view under
+`resources/views/emails/verification.blade.php`.
+
+Update your `.env` with Gmail SMTP settings:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your.address@gmail.com
+MAIL_PASSWORD=your_app_password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=your.address@gmail.com
+MAIL_FROM_NAME="{APP_NAME}"
+```
+
+Then clear the config cache:
+
+```bash
+php artisan config:clear
+php artisan cache:clear
+```
+
+After this, when you call `/api/auth/send-email-verification` or
+`/api/auth/send-password-reset` a coded email will be dispatched to the
+specified address.  OTP codes will still be returned in the JSON response whilst
+in development; remove that behaviour before deploying.
+
 - email_verified_at, phone_verified_at
 - account_status (active, inactive, suspended, pending)
 - created_at, updated_at

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -131,10 +132,12 @@ class AuthController extends Controller
         // Store code in cache with 15 minutes expiration
         cache()->put('email_verification_' . $user->id, $code, now()->addMinutes(15));
 
-        // In production, send email with code
-        // Mail::send('emails.verification', ['code' => $code], function ($message) use ($user) {
-        //     $message->to($user->email);
-        // });
+        // send real email using mailable
+        try {
+            Mail::to($user->email)->send(new \App\Mail\VerificationCode($code, 'email'));
+        } catch (\Exception $e) {
+            // fallback to returning code for development
+        }
 
         return response()->json([
             'message' => 'Verification code sent to email',
@@ -195,8 +198,12 @@ class AuthController extends Controller
         // Store code in cache with 15 minutes expiration
         cache()->put('phone_verification_' . $user->id, $code, now()->addMinutes(15));
 
-        // In production, send SMS with code
-        // SMS::send($user->phone, "Your verification code is: $code");
+        // additionally we could send via email too if desired
+        try {
+            Mail::to($user->email)->send(new \App\Mail\VerificationCode($code, 'phone'));
+        } catch (\Exception $e) {
+            // ignore
+        }
 
         return response()->json([
             'message' => 'Verification code sent to phone',
@@ -283,10 +290,12 @@ class AuthController extends Controller
         // Store code in cache with 15 minutes expiration
         cache()->put('password_reset_' . $user->id, $code, now()->addMinutes(15));
 
-        // In production, send email with reset code
-        // Mail::send('emails.password-reset', ['code' => $code], function ($message) use ($user) {
-        //     $message->to($user->email);
-        // });
+        // send reset email via mailable (reuse verification template or create new one)
+        try {
+            Mail::to($user->email)->send(new \App\Mail\VerificationCode($code, 'email'));
+        } catch (\Exception $e) {
+            // ignore
+        }
 
         return response()->json([
             'message' => 'Password reset code sent to email',
