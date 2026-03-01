@@ -73,20 +73,5 @@ class UserController extends Controller
         return response()->json(null, 204);
     }
 }
-    //     ]);
-
-    //     $user->update($validated);
-
-    //     return response()->json($user, 200);
-    // }
-
-    // /**
-    //  * Remove the specified resource from storage.
-    //  */
-    // public function destroy(User $user)
-    // {
-    //     $user->delete();
-
-    //     return response()->json(null, 204);
-    // }
+  
 

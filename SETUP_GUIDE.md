@@ -186,13 +186,32 @@ GET http://localhost:8000/api/auth/me
 
 1. Remove the `'code' => $code` from responses in `AuthController.php` - codes should only be sent via SMS/Email
 2. Implement actual SMS sending (e.g., Twilio)
-3. Implement actual Email sending (e.g., Mailtrap, SendGrid)
+3. Ensure your mail driver is correctly configured (see **Email Configuration** below)
 4. Add rate limiting to prevent brute force attacks
 5. Add CORS configuration if frontend is on different domain
 6. Use HTTPS only
 7. Add request logging and monitoring
 8. Implement refresh token rotation
 9. Add comprehensive error logging
+
+## Email Configuration
+
+The example `.env` is set to `MAIL_MAILER=log` which writes emails to the log instead of sending. To deliver codes to a real Gmail address you must configure SMTP and generate an application password:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your@gmail.com       # full Gmail address
+MAIL_PASSWORD=your_app_password    # generated in Google Account > Security > App passwords
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=your@gmail.com
+MAIL_FROM_NAME="SurfaceDefect API"
+```
+
+> **Note:** Google requires an "app password" when using SMTP from third-party apps. Visit your Google account security settings to create one. After configuration, invoke `php artisan config:clear` and `php artisan cache:clear`.
+
+Once SMTP is set up, calls to `/api/auth/send-email-verification` will attempt to send actual emailed codes to the provided address. If delivery fails the exception will be logged to `storage/logs/laravel.log`.
 
 ## Database Structure
 

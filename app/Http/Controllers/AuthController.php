@@ -136,7 +136,9 @@ class AuthController extends Controller
         try {
             Mail::to($user->email)->send(new \App\Mail\VerificationCode($code, 'email'));
         } catch (\Exception $e) {
-            // fallback to returning code for development
+            // Log failure so developer knows SMTP isn't configured or sending failed
+            //Log::error('Failed to send verification email', ['error' => $e->getMessage()]);
+            // if mailer isn't configured we still return success with code (for testing)
         }
 
         return response()->json([

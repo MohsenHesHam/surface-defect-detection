@@ -1,6 +1,7 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "surface-defect-detection",
+    
+     "name": "mohsenhesham/surface-defect-detection",
     "type": "project",
     "description": "Surface Defect Detection API - AI-powered surface inspection system with Laravel Sanctum authentication",
     "keywords": ["laravel", "api", "defect-detection", "computer-vision"],
