@@ -120,7 +120,10 @@ echo "\n";
 
 // 7. Test protected route should fail without token
 echo "7. Testing Protected Route (should fail without token)...\n";
-list($s, $b) = dispatchRequest($kernel, 'GET', '/api/auth/me', []);
+// Re-bootstrap the application to ensure no previous auth state persists
+$app2 = require __DIR__ . '/../bootstrap/app.php';
+$kernel2 = $app2->make(Illuminate\Contracts\Http\Kernel::class);
+list($s, $b) = dispatchRequest($kernel2, 'GET', '/api/auth/me', []);
 $results['protected_no_token'] = $s === 401 ? '✅ PASS (correctly denied)' : "❌ FAIL ($s - should be 401)";
 echo "Status: $s (expected 401)\n";
 echo "\n";
