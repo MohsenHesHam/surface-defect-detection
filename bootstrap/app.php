@@ -12,7 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // No custom middleware aliases registered here.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

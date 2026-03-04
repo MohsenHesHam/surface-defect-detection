@@ -17,9 +17,16 @@ class DefectCategoryController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     * Admin only
      */
     public function store(Request $request)
     {
+        if ($request->user()->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized. Admin access required.'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:defect_categories',
             'description' => 'nullable|string',
@@ -41,9 +48,16 @@ class DefectCategoryController extends Controller
 
     /**
      * Update the specified resource in storage.
+     * Admin only
      */
     public function update(Request $request, DefectCategory $defectCategory)
     {
+        if ($request->user()->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized. Admin access required.'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'name' => 'nullable|string|max:255|unique:defect_categories,name,' . $defectCategory->id,
             'description' => 'nullable|string',
@@ -57,9 +71,16 @@ class DefectCategoryController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     * Admin only
      */
-    public function destroy(DefectCategory $defectCategory)
+    public function destroy(Request $request, DefectCategory $defectCategory)
     {
+        if ($request->user()->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized. Admin access required.'
+            ], 403);
+        }
+
         $defectCategory->delete();
 
         return response()->json(null, 204);

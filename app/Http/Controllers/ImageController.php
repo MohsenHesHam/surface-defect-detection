@@ -13,17 +13,33 @@ class ImageController extends Controller
  
     /**
      * Display a listing of the resource.
+     * Admin sees all images, users see only their scan images
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Image::with(['scan', 'defects'])->get(), 200);
+        $user = $request->user();
+
+        if ($user->role === 'admin') {
+            return response()->json(Image::with(['scan', 'defects'])->get(), 200);
+        }
+
+        // Users see only images from their own scans
+        return response()->json(
+            Image::whereHas('scan', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->with(['scan', 'defects'])->get(),
+            200
+        );
     }
 
     /**
      * Store a newly created resource in storage.
+     * Admin can add to any scan, users can only add to their own scans
      */
     public function store(Request $request)
     {
+        $user = $request->user();
+
         // support multipart file upload or direct path
         $rules = [
             'scan_id' => 'required|exists:scans,id',
@@ -39,6 +55,14 @@ class ImageController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        // Check if user has permission to add image to this scan
+        $scan = \App\Models\Scan::find($validated['scan_id']);
+        if ($user->role !== 'admin' && $scan->user_id !== $user->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only add images to your own scans.'
+            ], 403);
+        }
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
@@ -56,17 +80,31 @@ class ImageController extends Controller
 
     /**
      * Display the specified resource.
+     * Admin can view any image, users can only view their scan images
      */
-    public function show(Image $image)
+    public function show(Request $request, Image $image)
     {
+        if ($request->user()->role !== 'admin' && $image->scan->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only view your own scan images.'
+            ], 403);
+        }
+
         return response()->json($image->load(['scan', 'defects']), 200);
     }
 
     /**
      * Update the specified resource in storage.
+     * Admin can update any image, users can only update their scan images
      */
     public function update(Request $request, Image $image)
     {
+        if ($request->user()->role !== 'admin' && $image->scan->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only update your own scan images.'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'image_path' => 'nullable|string',
             'processed_image_path' => 'nullable|string',
@@ -81,9 +119,16 @@ class ImageController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     * Admin can delete any image, users can only delete their scan images
      */
-    public function destroy(Image $image)
+    public function destroy(Request $request, Image $image)
     {
+        if ($request->user()->role !== 'admin' && $image->scan->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only delete your own scan images.'
+            ], 403);
+        }
+
         $image->delete();
 
         return response()->json(null, 204);

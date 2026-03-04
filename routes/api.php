@@ -40,6 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{user}', [UserController::class, 'show']);
         Route::put('/{user}', [UserController::class, 'update']);
         Route::delete('/{user}', [UserController::class, 'destroy']);
+        Route::post('/{user}/promote-to-admin', [UserController::class, 'promoteToAdmin']);
+        Route::post('/{user}/demote-to-user', [UserController::class, 'demoteToUser']);
     });
 
     // Profile routes (current authenticated user)

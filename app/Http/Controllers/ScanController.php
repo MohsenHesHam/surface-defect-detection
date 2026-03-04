@@ -15,23 +15,41 @@ class ScanController extends Controller
 {
     /**
      * Display a listing of the resource.
+     * Admin sees all scans, users see only their own
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Scan::with(['user', 'images', 'statistics'])->get(), 200);
+        $user = $request->user();
+
+        if ($user->role === 'admin') {
+            return response()->json(Scan::with(['user', 'images', 'statistics'])->get(), 200);
+        }
+
+        return response()->json(Scan::where('user_id', $user->id)->with(['user', 'images', 'statistics'])->get(), 200);
     }
 
     /**
      * Store a newly created resource in storage.
+     * Admin can create for any user, regular user can only create for themselves
      */
     public function store(Request $request)
     {
+        $user = $request->user();
+
+        // Validate input
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'scan_type' => 'required|string|max:255',
             'total_images' => 'nullable|integer|min:0',
             'status' => 'nullable|string|in:pending,processing,completed,failed',
         ]);
+
+        // Regular users can only create scans for themselves
+        if ($user->role !== 'admin' && $validated['user_id'] != $user->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only create scans for yourself.'
+            ], 403);
+        }
 
         $scan = Scan::create(array_merge($validated, ['status' => $validated['status'] ?? 'pending']));
 
@@ -119,17 +137,31 @@ class ScanController extends Controller
 
     /**
      * Display the specified resource.
+     * Admin can view any scan, users can only view their own
      */
-    public function show(Scan $scan)
+    public function show(Request $request, Scan $scan)
     {
+        if ($request->user()->role !== 'admin' && $scan->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only view your own scans.'
+            ], 403);
+        }
+
         return response()->json($scan->load(['user', 'images', 'statistics']), 200);
     }
 
     /**
      * Update the specified resource in storage.
+     * Admin can update any scan, users can only update their own
      */
     public function update(Request $request, Scan $scan)
     {
+        if ($request->user()->role !== 'admin' && $scan->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only update your own scans.'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'scan_type' => 'nullable|string|max:255',
             'total_images' => 'nullable|integer|min:0',
@@ -144,9 +176,16 @@ class ScanController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     * Admin can delete any scan, users can only delete their own
      */
-    public function destroy(Scan $scan)
+    public function destroy(Request $request, Scan $scan)
     {
+        if ($request->user()->role !== 'admin' && $scan->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only delete your own scans.'
+            ], 403);
+        }
+
         $scan->delete();
 
         return response()->json(null, 204);

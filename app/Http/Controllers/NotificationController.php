@@ -9,17 +9,31 @@ class NotificationController extends Controller
 {
     /**
      * Display a listing of the resource.
+     * Admin sees all notifications, users see only their own
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Notification::with('user')->get(), 200);
+        $user = $request->user();
+
+        if ($user->role === 'admin') {
+            return response()->json(Notification::with('user')->get(), 200);
+        }
+
+        return response()->json(Notification::where('user_id', $user->id)->with('user')->get(), 200);
     }
 
     /**
      * Store a newly created resource in storage.
+     * Admin only
      */
     public function store(Request $request)
     {
+        if ($request->user()->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized. Admin access required.'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'title' => 'required|string|max:255',
@@ -35,17 +49,31 @@ class NotificationController extends Controller
 
     /**
      * Display the specified resource.
+     * Admin can view any notification, users can only view their own
      */
-    public function show(Notification $notification)
+    public function show(Request $request, Notification $notification)
     {
+        if ($request->user()->role !== 'admin' && $notification->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only view your own notifications.'
+            ], 403);
+        }
+
         return response()->json($notification->load('user'), 200);
     }
 
     /**
      * Update the specified resource in storage.
+     * Admin can update any, users can only update their own
      */
     public function update(Request $request, Notification $notification)
     {
+        if ($request->user()->role !== 'admin' && $notification->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only update your own notifications.'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
             'message' => 'nullable|string',
