@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+
+class User extends Authenticatable
+{
+    use HasApiTokens;
+    use HasFactory;
+    use Notifiable;
+
+    protected $fillable = [
+        'full_name',
+        'email',
+        'phone',
+        'password',
+        'avatar',
+        'email_verified_at',
+        'phone_verified_at',
+        'account_status',
+        'role',
+    ];
+
+    protected $hidden = [
+        'remember_token',
+        'password',
+    ]; 
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'phone_verified_at' => 'datetime',
+    ];
+
+    public function scans()
+    {
+        return $this->hasMany(Scan::class);
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(Activity::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function settings()
+    {
+        return $this->hasOne(UserSetting::class);
+    }
+}

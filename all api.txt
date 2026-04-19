@@ -1,0 +1,230 @@
+// http://127.0.0.1:8000/api/auth/register - تسجيل مستخدم جديد
+Route::post('/register', [AuthController::class, 'register']);
+
+// http://127.0.0.1:8000/api/auth/login - تسجيل الدخول
+Route::post('/login', [AuthController::class, 'login']);
+
+// http://127.0.0.1:8000/api/auth/send-email-verification - إرسال كود تفعيل الإيميل
+Route::post('/send-email-verification', [AuthController::class, 'sendEmailVerification']);
+
+// http://127.0.0.1:8000/api/auth/verify-email - تأكيد كود تفعيل الإيميل
+Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+
+// http://127.0.0.1:8000/api/auth/send-phone-verification - إرسال كود تفعيل الهاتف
+Route::post('/send-phone-verification', [AuthController::class, 'sendPhoneVerification']);
+
+// http://127.0.0.1:8000/api/auth/verify-phone - تأكيد كود تفعيل الهاتف
+Route::post('/verify-phone', [AuthController::class, 'verifyPhone']);
+
+// http://127.0.0.1:8000/api/auth/resend-code - إعادة إرسال كود التفعيل
+Route::post('/resend-code', [AuthController::class, 'resendCode']);
+
+// http://127.0.0.1:8000/api/auth/send-password-reset - إرسال كود إعادة تعيين كلمة المرور
+Route::post('/send-password-reset', [AuthController::class, 'sendPasswordResetCode']);
+
+// http://127.0.0.1:8000/api/auth/verify-password-reset - تأكيد كود إعادة تعيين كلمة المرور
+Route::post('/verify-password-reset', [AuthController::class, 'verifyPasswordResetCode']);
+
+// http://127.0.0.1:8000/api/auth/reset-password - إعادة تعيين كلمة المرور
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+// Protected routes (require authentication)
+Route::middleware('auth:sanctum')->group(function () {
+    
+    // ==================== AUTH ROUTES ====================
+    // http://127.0.0.1:8000/api/auth/logout - تسجيل الخروج
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+    
+    // http://127.0.0.1:8000/api/auth/me - عرض بيانات المستخدم الحالي
+    Route::get('/auth/me', [AuthController::class, 'me']);
+
+    // ==================== USER ROUTES ====================
+    Route::prefix('users')->group(function () {
+        // http://127.0.0.1:8000/api/users - عرض جميع المستخدمين
+        Route::get('/', [UserController::class, 'index']);
+        
+        // http://127.0.0.1:8000/api/users - إضافة مستخدم جديد
+        Route::post('/', [UserController::class, 'store']);
+        
+        // http://127.0.0.1:8000/api/users/{user} - عرض مستخدم معين
+        Route::get('/{user}', [UserController::class, 'show']);
+        
+        // http://127.0.0.1:8000/api/users/{user} - تحديث بيانات مستخدم
+        Route::put('/{user}', [UserController::class, 'update']);
+        
+        // http://127.0.0.1:8000/api/users/{user} - حذف مستخدم
+        Route::delete('/{user}', [UserController::class, 'destroy']);
+    });
+
+    // ==================== PROFILE ROUTES ====================
+    // http://127.0.0.1:8000/api/profile - عرض البروفايل الشخصي
+    Route::get('/profile', [UserController::class, 'getProfile']);
+    
+    // http://127.0.0.1:8000/api/profile - تحديث البروفايل الشخصي
+    Route::put('/profile', [UserController::class, 'updateProfile']);
+    
+    // http://127.0.0.1:8000/api/profile/settings - تحديث إعدادات المستخدم
+    Route::put('/profile/settings', [UserController::class, 'updateSettings']);
+
+    // ==================== ACTIVITY ROUTES ====================
+    Route::prefix('activities')->group(function () {
+        // http://127.0.0.1:8000/api/activities - عرض جميع الأنشطة
+        Route::get('/', [ActivityController::class, 'index']);
+        
+        // http://127.0.0.1:8000/api/activities - إضافة نشاط جديد
+        Route::post('/', [ActivityController::class, 'store']);
+        
+        // http://127.0.0.1:8000/api/activities/{activity} - عرض نشاط معين
+        Route::get('/{activity}', [ActivityController::class, 'show']);
+        
+        // http://127.0.0.1:8000/api/activities/{activity} - تحديث نشاط
+        Route::put('/{activity}', [ActivityController::class, 'update']);
+        
+        // http://127.0.0.1:8000/api/activities/{activity} - حذف نشاط
+        Route::delete('/{activity}', [ActivityController::class, 'destroy']);
+    });
+
+    // ==================== DEFECT CATEGORIES ROUTES ====================
+    Route::prefix('defect-categories')->group(function () {
+        // http://127.0.0.1:8000/api/defect-categories - عرض جميع فئات العيوب
+        Route::get('/', [DefectCategoryController::class, 'index']);
+        
+        // http://127.0.0.1:8000/api/defect-categories - إضافة فئة عيب جديدة
+        Route::post('/', [DefectCategoryController::class, 'store']);
+        
+        // http://127.0.0.1:8000/api/defect-categories/{defectCategory} - عرض فئة عيب معينة
+        Route::get('/{defectCategory}', [DefectCategoryController::class, 'show']);
+        
+        // http://127.0.0.1:8000/api/defect-categories/{defectCategory} - تحديث فئة عيب
+        Route::put('/{defectCategory}', [DefectCategoryController::class, 'update']);
+        
+        // http://127.0.0.1:8000/api/defect-categories/{defectCategory} - حذف فئة عيب
+        Route::delete('/{defectCategory}', [DefectCategoryController::class, 'destroy']);
+    });
+
+    // ==================== SCAN ROUTES ====================
+    Route::prefix('scans')->group(function () {
+        // http://127.0.0.1:8000/api/scans - عرض جميع عمليات المسح
+        Route::get('/', [ScanController::class, 'index']);
+        
+        // http://127.0.0.1:8000/api/scans - إضافة عملية مسح جديدة
+        Route::post('/', [ScanController::class, 'store']);
+        
+        // http://127.0.0.1:8000/api/scans/{scan} - عرض عملية مسح معينة
+        Route::get('/{scan}', [ScanController::class, 'show']);
+        
+        // http://127.0.0.1:8000/api/scans/{scan} - تحديث عملية مسح
+        Route::put('/{scan}', [ScanController::class, 'update']);
+        
+        // http://127.0.0.1:8000/api/scans/{scan} - حذف عملية مسح
+        Route::delete('/{scan}', [ScanController::class, 'destroy']);
+    });
+
+    // ==================== IMAGE ROUTES ====================
+    Route::prefix('images')->group(function () {
+        // http://127.0.0.1:8000/api/images - عرض جميع الصور
+        Route::get('/', [ImageController::class, 'index']);
+        
+        // http://127.0.0.1:8000/api/images - إضافة صورة جديدة
+        Route::post('/', [ImageController::class, 'store']);
+        
+        // http://127.0.0.1:8000/api/images/{image} - عرض صورة معينة
+        Route::get('/{image}', [ImageController::class, 'show']);
+        
+        // http://127.0.0.1:8000/api/images/{image} - تحديث بيانات صورة
+        Route::put('/{image}', [ImageController::class, 'update']);
+        
+        // http://127.0.0.1:8000/api/images/{image} - حذف صورة
+        Route::delete('/{image}', [ImageController::class, 'destroy']);
+    });
+
+    // ==================== IMAGE DEFECTS ROUTES ====================
+    Route::prefix('image-defects')->group(function () {
+        // http://127.0.0.1:8000/api/image-defects - عرض جميع عيوب الصور
+        Route::get('/', [ImageDefectController::class, 'index']);
+        
+        // http://127.0.0.1:8000/api/image-defects - إضافة عيب لصورة
+        Route::post('/', [ImageDefectController::class, 'store']);
+        
+        // http://127.0.0.1:8000/api/image-defects/{imageDefect} - عرض عيب معين في صورة
+        Route::get('/{imageDefect}', [ImageDefectController::class, 'show']);
+        
+        // http://127.0.0.1:8000/api/image-defects/{imageDefect} - تحديث عيب في صورة
+        Route::put('/{imageDefect}', [ImageDefectController::class, 'update']);
+        
+        // http://127.0.0.1:8000/api/image-defects/{imageDefect} - حذف عيب من صورة
+        Route::delete('/{imageDefect}', [ImageDefectController::class, 'destroy']);
+    });
+
+    // ==================== NOTIFICATION ROUTES ====================
+    Route::prefix('notifications')->group(function () {
+        // http://127.0.0.1:8000/api/notifications - عرض جميع الإشعارات
+        Route::get('/', [NotificationController::class, 'index']);
+        
+        // http://127.0.0.1:8000/api/notifications - إرسال إشعار جديد
+        Route::post('/', [NotificationController::class, 'store']);
+        
+        // http://127.0.0.1:8000/api/notifications/{notification} - عرض إشعار معين
+        Route::get('/{notification}', [NotificationController::class, 'show']);
+        
+        // http://127.0.0.1:8000/api/notifications/{notification} - تحديث إشعار
+        Route::put('/{notification}', [NotificationController::class, 'update']);
+        
+        // http://127.0.0.1:8000/api/notifications/{notification} - حذف إشعار
+        Route::delete('/{notification}', [NotificationController::class, 'destroy']);
+        
+        // http://127.0.0.1:8000/api/notifications/{notification}/mark-as-read - تحديد إشعار كمقروء
+        Route::post('/{notification}/mark-as-read', [NotificationController::class, 'markAsRead']);
+    });
+
+    // ==================== SCAN STATISTICS ROUTES ====================
+    Route::prefix('scan-statistics')->group(function () {
+        // http://127.0.0.1:8000/api/scan-statistics - عرض إحصائيات المسح
+        Route::get('/', [ScanStatisticController::class, 'index']);
+        
+        // http://127.0.0.1:8000/api/scan-statistics - إضافة إحصائية مسح جديدة
+        Route::post('/', [ScanStatisticController::class, 'store']);
+        
+        // http://127.0.0.1:8000/api/scan-statistics/{scanStatistic} - عرض إحصائية معينة
+        Route::get('/{scanStatistic}', [ScanStatisticController::class, 'show']);
+        
+        // http://127.0.0.1:8000/api/scan-statistics/{scanStatistic} - تحديث إحصائية
+        Route::put('/{scanStatistic}', [ScanStatisticController::class, 'update']);
+        
+        // http://127.0.0.1:8000/api/scan-statistics/{scanStatistic} - حذف إحصائية
+        Route::delete('/{scanStatistic}', [ScanStatisticController::class, 'destroy']);
+    });
+
+    // ==================== USER SETTINGS ROUTES ====================
+    Route::prefix('user-settings')->group(function () {
+        // http://127.0.0.1:8000/api/user-settings - عرض إعدادات المستخدم
+        Route::get('/', [UserSettingController::class, 'index']);
+        
+        // http://127.0.0.1:8000/api/user-settings - إضافة إعدادات جديدة
+        Route::post('/', [UserSettingController::class, 'store']);
+        
+        // http://127.0.0.1:8000/api/user-settings/{userSetting} - عرض إعدادات معينة
+        Route::get('/{userSetting}', [UserSettingController::class, 'show']);
+        
+        // http://127.0.0.1:8000/api/user-settings/{userSetting} - تحديث إعدادات
+        Route::put('/{userSetting}', [UserSettingController::class, 'update']);
+        
+        // http://127.0.0.1:8000/api/user-settings/{userSetting} - حذف إعدادات
+        Route::delete('/{userSetting}', [UserSettingController::class, 'destroy']);
+    });
+
+    // http://127.0.0.1:8000/api/user - عرض بيانات المستخدم الحالي
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    // ==================== ANALYTICS ROUTES ====================
+    // http://127.0.0.1:8000/api/analytics/summary - عرض ملخص التحليلات
+    Route::get('/analytics/summary', [AnalyticsController::class, 'summary']);
+    
+    // http://127.0.0.1:8000/api/analytics/report/{scanId?} - عرض تقرير تحليلات (مع أو بدون معرف المسح)
+    Route::get('/analytics/report/{scanId?}', [AnalyticsController::class, 'report']);
+    
+    // http://127.0.0.1:8000/api/analytics/history - عرض سجل التحليلات
+    Route::get('/analytics/history', [AnalyticsController::class, 'history']);
+});
