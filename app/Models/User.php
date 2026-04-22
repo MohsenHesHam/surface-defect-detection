@@ -19,6 +19,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'avatar',
+        'theme',
         'email_verified_at',
         'phone_verified_at',
         'account_status',
@@ -34,6 +35,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'phone_verified_at' => 'datetime',
     ];
+
+    public function getNameAttribute(): string
+    {
+        return $this->full_name;
+    }
 
     public function scans()
     {

@@ -128,6 +128,41 @@ class ScanAndDetectionTest extends TestCase
         ])->assertStatus(503);
     }
 
+    public function test_detect_defect_uses_existing_category_mapping_instead_of_creating_abbreviation(): void
+    {
+        $user = User::factory()->create();
+        UserSetting::create(['user_id' => $user->id]);
+        $category = DefectCategory::create([
+            'name' => 'crazing',
+            'description' => 'Fine network of surface cracks',
+            'severity_level' => 'high',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        Http::fake([
+            '*' => Http::response([
+                'class' => 'cr',
+                'confidence' => 96.62,
+                'bbox' => [0, 0, 186, 156],
+            ], 200),
+        ]);
+
+        $response = $this->post('/api/scans/detect-defect', [
+            'image' => $this->fakeImage('defect.png'),
+        ]);
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('image_defects', [
+            'defect_category_id' => $category->id,
+        ]);
+
+        $this->assertDatabaseMissing('defect_categories', [
+            'name' => 'cr',
+        ]);
+    }
+
     protected function fakeImage(string $name): UploadedFile
     {
         $png = base64_decode(

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -32,6 +33,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
+            'theme' => 'light',
             // 'account_status' => 'pending',
         ]);
 
@@ -45,7 +47,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'User registered successfully',
-            'user' => $user,
+            'user' => (new UserResource($user->fresh()))->resolve(),
         ], 201);
     }
 
@@ -82,7 +84,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful',
-            'user' => $user,
+            'user' => (new UserResource($user->fresh()))->resolve(),
             'token' => $token,
             'requires_email_verification' => $user->email_verified_at === null,
             'requires_phone_verification' => $user->phone_verified_at === null,
@@ -107,7 +109,7 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return response()->json([
-            'user' => $request->user()->load(['scans', 'activities', 'notifications', 'settings']),
+            'user' => (new UserResource($request->user()->fresh()))->resolve(),
         ], 200);
     }
 
@@ -175,7 +177,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Email verified successfully',
-            'user' => $user,
+            'user' => (new UserResource($user->fresh()))->resolve(),
         ], 200);
     }
 
@@ -246,7 +248,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Phone verified successfully',
-            'user' => $user,
+            'user' => (new UserResource($user->fresh()))->resolve(),
         ], 200);
     }
 
@@ -370,7 +372,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Password changed successfully',
-            'user' => $user,
+            'user' => (new UserResource($user->fresh()))->resolve(),
         ], 200);
     }
 
@@ -400,7 +402,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Password changed successfully',
-            'user' => $user,
+            'user' => (new UserResource($user->fresh()))->resolve(),
         ], 200);
     }
 }

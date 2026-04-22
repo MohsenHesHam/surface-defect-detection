@@ -17,6 +17,28 @@ use Illuminate\Support\Str;
 class ScanController extends Controller
 {
     use ApiResponse;
+
+    protected function resolveDefectCategory(string $predictedClass): DefectCategory
+    {
+        $normalizedClass = Str::lower(trim($predictedClass));
+        $classMap = (array) config('services.ai_detection.class_map', []);
+        $categoryMeta = $classMap[$normalizedClass] ?? null;
+
+        if (is_string($categoryMeta)) {
+            $categoryMeta = ['name' => $categoryMeta];
+        }
+
+        $resolvedName = $categoryMeta['name'] ?? $normalizedClass;
+
+        return DefectCategory::firstOrCreate(
+            ['name' => $resolvedName],
+            [
+                'description' => $categoryMeta['description'] ?? 'Auto-created from AI detection result',
+                'severity_level' => $categoryMeta['severity_level'] ?? 'medium',
+            ]
+        );
+    }
+
     /**
      * Display a listing of the resource.
      * Admin sees all scans, users see only their own
@@ -251,11 +273,12 @@ class ScanController extends Controller
                 ]);
             }
 
-            // Call FastAPI service
-            $fastapiUrl = env('FASTAPI_URL', 'http://localhost:8001'); // Use different port
+            // Call AI detection service
+            $fastapiUrl = rtrim((string) config('services.ai_detection.base_url', 'http://localhost:8001'), '/');
+            $timeout = (int) config('services.ai_detection.timeout', 30);
 
             /** @var HttpResponse $response */
-            $response = \Illuminate\Support\Facades\Http::timeout(30)->attach(
+            $response = \Illuminate\Support\Facades\Http::timeout($timeout)->attach(
                 'file', file_get_contents($image->getRealPath()), $image->getClientOriginalName()
             )->post($fastapiUrl . '/predict');
 
@@ -292,13 +315,7 @@ class ScanController extends Controller
                 ]);
 
                 $predictedClass = $result['class'] ?? 'unknown';
-                $defectCategory = DefectCategory::firstOrCreate(
-                    ['name' => $predictedClass],
-                    [
-                        'description' => 'Auto-created from AI detection result',
-                        'severity_level' => 'medium',
-                    ]
-                );
+                $defectCategory = $this->resolveDefectCategory($predictedClass);
 
                 $savedDefect = ImageDefect::create([
                     'image_id' => $savedImage->id,
