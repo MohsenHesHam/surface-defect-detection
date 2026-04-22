@@ -10,6 +10,7 @@ use App\Http\Controllers\ImageDefectController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ScanStatisticController;
 use App\Http\Controllers\UserSettingController;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [UserController::class, 'getProfile']);
     Route::put('/profile', [UserController::class, 'updateProfile']);
     Route::put('/profile/settings', [UserController::class, 'updateSettings']);
+    Route::post('/upload-avatar', [UserController::class, 'uploadAvatar']);
 
     // Activity routes
     Route::prefix('activities')->group(function () {
@@ -125,7 +127,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Current user info
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        return response()->json((new UserResource($request->user()->fresh()))->resolve(), 200);
     });
 
     // Analytics
