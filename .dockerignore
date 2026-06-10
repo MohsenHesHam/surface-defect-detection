@@ -1,0 +1,17 @@
+vendor
+node_modules
+npm-debug.log*
+.env
+.env.*
+.phpunit.result.cache
+/.idea
+/.vscode
+/.git
+/.gitignore
+/storage/*.key
+/storage/pail
+/public/build
+/public/hot
+/public/storage
+.DS_Store
+Thumbs.db
