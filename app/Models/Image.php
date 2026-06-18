@@ -23,4 +23,10 @@ class Image extends Model
     {
         return $this->hasMany(ImageDefect::class);
     }
+
+    // Alias for readability when matching DB table naming.
+    public function imageDefects()
+    {
+        return $this->hasMany(ImageDefect::class);
+    }
 }

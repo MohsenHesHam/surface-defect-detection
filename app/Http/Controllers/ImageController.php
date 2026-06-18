@@ -14,22 +14,41 @@ class ImageController extends Controller
     /**
      * Display a listing of the resource.
      * Admin sees all images, users see only their scan images
+     * Filter by scan_id if provided as query parameter
      */
     public function index(Request $request)
     {
         $user = $request->user();
+        $scanId = $request->query('scan_id');
 
         if ($user->role === 'admin') {
-            return response()->json(Image::with(['scan', 'defects'])->get(), 200);
+            $query = Image::query();
+            if ($scanId) {
+                $query->where('scan_id', $scanId);
+            }
+            return response()->json([
+                'status' => true,
+                'success' => true,
+                'message' => 'Images retrieved successfully',
+                'data' => $query->get()
+            ], 200);
         }
 
         // Users see only images from their own scans
-        return response()->json(
-            Image::whereHas('scan', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })->with(['scan', 'defects'])->get(),
-            200
-        );
+        $query = Image::whereHas('scan', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        });
+
+        if ($scanId) {
+            $query->where('scan_id', $scanId);
+        }
+
+        return response()->json([
+            'status' => true,
+            'success' => true,
+            'message' => 'Images retrieved successfully',
+            'data' => $query->get()
+        ], 200);
     }
 
     /**

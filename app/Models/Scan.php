@@ -37,4 +37,10 @@ class Scan extends Model
     {
         return $this->hasOne(ScanStatistic::class);
     }
+
+    // Alias for clearer intent in some API responses.
+    public function scanStatistic()
+    {
+        return $this->hasOne(ScanStatistic::class);
+    }
 }

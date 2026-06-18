@@ -17,9 +17,49 @@ use Illuminate\Support\Str;
 class ScanController extends Controller
 {
     use ApiResponse;
+
+    /**
+     * Accuracy is represented as average AI confidence for the scan.
+     * If no defects are found, treat scan as fully accurate (100 for existing images).
+     */
+    protected function resolveScanAccuracy(Scan $scan, int $totalImages): float
+    {
+        $avgConfidence = ImageDefect::whereHas('image', function ($query) use ($scan) {
+            $query->where('scan_id', $scan->id);
+        })->avg('confidence');
+
+        if ($avgConfidence !== null) {
+            return round((float) $avgConfidence, 2);
+        }
+
+        return $totalImages > 0 ? 100.0 : 0.0;
+    }
+
+    protected function resolveDefectCategory(string $predictedClass): DefectCategory
+    {
+        $normalizedClass = Str::lower(trim($predictedClass));
+        $classMap = (array) config('services.ai_detection.class_map', []);
+        $categoryMeta = $classMap[$normalizedClass] ?? null;
+
+        if (is_string($categoryMeta)) {
+            $categoryMeta = ['name' => $categoryMeta];
+        }
+
+        $resolvedName = $categoryMeta['name'] ?? $normalizedClass;
+
+        return DefectCategory::firstOrCreate(
+            ['name' => $resolvedName],
+            [
+                'description' => $categoryMeta['description'] ?? 'Auto-created from AI detection result',
+                'severity_level' => $categoryMeta['severity_level'] ?? 'medium',
+            ]
+        );
+    }
+
     /**
      * Display a listing of the resource.
      * Admin sees all scans, users see only their own
+     * NOTE: Does NOT load images/statistics - returns only basic scan info
      */
     public function index(Request $request)
     {
@@ -28,18 +68,18 @@ class ScanController extends Controller
             $perPage = $request->query('per_page');
 
             if ($user->role === 'admin') {
-                $query = Scan::with(['user', 'images', 'statistics']);
+                $query = Scan::query();
             } else {
-                $query = Scan::where('user_id', $user->id)->with(['user', 'images', 'statistics']);
+                $query = Scan::where('user_id', $user->id);
             }
 
             if ($request->has('page') || $perPage !== null) {
                 $perPage = $perPage ? (int) $perPage : 15;
-                $scans = $query->paginate($perPage);
-                return $this->paginatedResponse($scans, 'Scans retrieved successfully');
+                $scans = $query->latest()->paginate($perPage);
+                return $this->paginatedResponse($scans, 'Scans list retrieved successfully');
             }
 
-            return $this->listResponse($query->get(), 'Scans retrieved successfully');
+            return $this->listResponse($query->latest()->get(), 'Scans list retrieved successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
@@ -145,7 +185,7 @@ class ScanController extends Controller
         $defectCount = $totalDefects;
         $totalImages = $images->count();
         $passedCount = max(0, $totalImages - $defectCount);
-        $accuracy = $totalImages > 0 ? round((($passedCount) / $totalImages) * 100, 2) : 0;
+        $accuracy = $this->resolveScanAccuracy($scan, $totalImages);
 
         ScanStatistic::create([
             'scan_id' => $scan->id,
@@ -171,6 +211,114 @@ class ScanController extends Controller
             }
 
             return $this->successResponse($scan->load(['user', 'images', 'statistics']), 'Scan retrieved successfully', 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get only the images for a specific scan
+     */
+    public function getScanImages(Request $request, Scan $scan)
+    {
+        try {
+            if ($request->user()->role !== 'admin' && $scan->user_id !== $request->user()->id) {
+                return $this->errorResponse('Unauthorized. You can only view your own scan images.', 403);
+            }
+
+            return response()->json([
+                'status' => true,
+                'success' => true,
+                'message' => 'Scan images retrieved successfully',
+                'data' => $scan->images
+            ], 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get only the statistics for a specific scan
+     */
+    public function getScanStatistics(Request $request, Scan $scan)
+    {
+        try {
+            if ($request->user()->role !== 'admin' && $scan->user_id !== $request->user()->id) {
+                return $this->errorResponse('Unauthorized. You can only view your own scan statistics.', 403);
+            }
+
+            return response()->json([
+                'status' => true,
+                'success' => true,
+                'message' => 'Scan statistics retrieved successfully',
+                'data' => $scan->statistics
+            ], 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Return scan details in a Flutter-friendly shape.
+     */
+    public function flutterReport(Request $request, Scan $scan)
+    {
+        try {
+            $user = $request->user();
+
+            if ($user->role !== 'admin' && $scan->user_id !== $user->id) {
+                return $this->errorResponse('Unauthorized. You can only view your own scans.', 403);
+            }
+
+            $scan->loadMissing([
+                'statistics',
+                'images.defects.defectCategory',
+            ]);
+
+            $statistics = $scan->statistics;
+            $totalImages = (int) ($scan->total_images ?: $scan->images->count());
+            $computedTotalDefects = (int) $scan->images->sum(fn (Image $image) => $image->defects->count());
+
+            $passedCount = (int) ($statistics->passed_count ?? max(0, $totalImages - $computedTotalDefects));
+            $defectCount = (int) ($statistics->defect_count ?? $scan->images->filter(fn (Image $image) => $image->defects->isNotEmpty())->count());
+            $totalDefects = (int) ($statistics->total_defects ?? $computedTotalDefects);
+            $accuracy = (float) ($statistics->accuracy ?? ($totalImages > 0 ? round(($passedCount / $totalImages) * 100, 2) : 0.0));
+
+            // Required formula: successRate = passedCount / total_images * 100
+            $successRate = $totalImages > 0
+                ? round(($passedCount / $totalImages) * 100, 2)
+                : 0.0;
+
+            $scanData = $scan->images->flatMap(function (Image $image) {
+                if ($image->defects->isEmpty()) {
+                    return [[
+                        'originalImagePath' => $image->image_path,
+                        'processedImage' => $image->processed_image_path ?? $image->image_path,
+                        'defectType' => 'No Defect',
+                        'confidence' => 0.0,
+                    ]];
+                }
+
+                return $image->defects->map(function (ImageDefect $defect) use ($image) {
+                    return [
+                        'originalImagePath' => $image->image_path,
+                        'processedImage' => $image->processed_image_path ?? $image->image_path,
+                        'defectType' => $defect->defectCategory?->name ?? 'Unknown',
+                        'confidence' => (float) ($defect->confidence ?? 0),
+                    ];
+                });
+            })->values();
+
+            return response()->json([
+                'statistics' => [
+                    'passedCount' => $passedCount,
+                    'defectCount' => $defectCount,
+                    'totalDefects' => $totalDefects,
+                    'accuracy' => $accuracy,
+                    'successRate' => $successRate,
+                ],
+                'scanData' => $scanData,
+            ]);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
@@ -251,11 +399,12 @@ class ScanController extends Controller
                 ]);
             }
 
-            // Call FastAPI service
-            $fastapiUrl = env('FASTAPI_URL', 'http://localhost:8001'); // Use different port
+            // Call AI detection service
+            $fastapiUrl = rtrim((string) config('services.ai_detection.base_url', 'http://localhost:8001'), '/');
+            $timeout = (int) config('services.ai_detection.timeout', 30);
 
             /** @var HttpResponse $response */
-            $response = \Illuminate\Support\Facades\Http::timeout(30)->attach(
+            $response = \Illuminate\Support\Facades\Http::timeout($timeout)->attach(
                 'file', file_get_contents($image->getRealPath()), $image->getClientOriginalName()
             )->post($fastapiUrl . '/predict');
 
@@ -292,13 +441,7 @@ class ScanController extends Controller
                 ]);
 
                 $predictedClass = $result['class'] ?? 'unknown';
-                $defectCategory = DefectCategory::firstOrCreate(
-                    ['name' => $predictedClass],
-                    [
-                        'description' => 'Auto-created from AI detection result',
-                        'severity_level' => 'medium',
-                    ]
-                );
+                $defectCategory = $this->resolveDefectCategory($predictedClass);
 
                 $savedDefect = ImageDefect::create([
                     'image_id' => $savedImage->id,
@@ -320,7 +463,7 @@ class ScanController extends Controller
                 })->count();
 
                 $passedCount = max(0, $totalImages - $totalDefects);
-                $accuracy = $totalImages > 0 ? round(($passedCount / $totalImages) * 100, 2) : 0;
+                $accuracy = $this->resolveScanAccuracy($scan, $totalImages);
 
                 $statistics = ScanStatistic::updateOrCreate(
                     ['scan_id' => $scan->id],

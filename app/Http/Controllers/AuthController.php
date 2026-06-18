@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
+use App\Models\Scan;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Mail;
@@ -27,26 +32,49 @@ class AuthController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = User::create([
-            'full_name' => $request->full_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-            // 'account_status' => 'pending',
-        ]);
+        try {
+            $user = DB::transaction(function () use ($request) {
+                $payload = [
+                    'full_name' => $request->full_name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'password' => Hash::make($request->password),
+                    // 'account_status' => 'pending',
+                ];
 
-        // Create user settings
-        $user->settings()->create([
-            'language' => 'en',
-            'theme' => 'light',
-            'push_notifications' => true,
-            'email_notifications' => true,
-        ]);
+                // Keep register compatible with servers that don't have users.theme yet.
+                if (Schema::hasColumn('users', 'theme')) {
+                    $payload['theme'] = 'light';
+                }
 
-        return response()->json([
-            'message' => 'User registered successfully',
-            'user' => $user,
-        ], 201);
+                $user = User::create($payload);
+
+                // Create user settings
+                $user->settings()->create([
+                    'language' => 'en',
+                    'theme' => 'light',
+                    'push_notifications' => true,
+                    'email_notifications' => true,
+                ]);
+
+                return $user;
+            });
+
+            return response()->json([
+                'message' => 'User registered successfully',
+                'user' => (new UserResource($user->fresh()))->resolve(),
+            ], 201);
+        } catch (\Throwable $e) {
+            Log::error('Register failed', [
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Registration failed',
+                'error' => app()->isLocal() ? $e->getMessage() : 'Internal server error',
+            ], 500);
+        }
     }
 
     /**
@@ -82,7 +110,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful',
-            'user' => $user,
+            'user' => (new UserResource($user->fresh()))->resolve(),
             'token' => $token,
             'requires_email_verification' => $user->email_verified_at === null,
             'requires_phone_verification' => $user->phone_verified_at === null,
@@ -106,8 +134,25 @@ class AuthController extends Controller
      */
     public function me(Request $request)
     {
+        $user = $request->user();
+
+        $todayScans = Scan::query()
+            ->where('user_id', $user->id)
+            ->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()])
+            ->count();
+
+        $totalScans = Scan::query()
+            ->where('user_id', $user->id)
+            ->count();
+
         return response()->json([
-            'user' => $request->user()->load(['scans', 'activities', 'notifications', 'settings']),
+            'user' => array_merge(
+                (new UserResource($user->fresh()))->resolve(),
+                [
+                    'today_scans' => $todayScans,
+                    'total_scans' => $totalScans,
+                ]
+            ),
         ], 200);
     }
 
@@ -175,7 +220,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Email verified successfully',
-            'user' => $user,
+            'user' => (new UserResource($user->fresh()))->resolve(),
         ], 200);
     }
 
@@ -246,7 +291,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Phone verified successfully',
-            'user' => $user,
+            'user' => (new UserResource($user->fresh()))->resolve(),
         ], 200);
     }
 
@@ -370,7 +415,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Password changed successfully',
-            'user' => $user,
+            'user' => (new UserResource($user->fresh()))->resolve(),
         ], 200);
     }
 
@@ -400,7 +445,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Password changed successfully',
-            'user' => $user,
+            'user' => (new UserResource($user->fresh()))->resolve(),
         ], 200);
     }
 }

@@ -35,4 +35,41 @@ return [
         ],
     ],
 
+    'ai_detection' => [
+        'base_url' => env('FASTAPI_URL', 'http://localhost:8001'),
+        'timeout' => (int) env('FASTAPI_TIMEOUT', 30),
+        'class_map' => [
+            'cr' => [
+                'name' => 'crazing',
+                'description' => 'Fine network of surface cracks',
+                'severity_level' => 'high',
+            ],
+            'in' => [
+                'name' => 'inclusion',
+                'description' => 'Foreign material inside the metal',
+                'severity_level' => 'medium',
+            ],
+            'pa' => [
+                'name' => 'patches',
+                'description' => 'Irregular patches or discoloration',
+                'severity_level' => 'medium',
+            ],
+            'pi' => [
+                'name' => 'pitted',
+                'description' => 'Small pits or holes on the surface',
+                'severity_level' => 'low',
+            ],
+            'ro' => [
+                'name' => 'rolled',
+                'description' => 'Surface marks from rolling process',
+                'severity_level' => 'low',
+            ],
+            'sc' => [
+                'name' => 'scratches',
+                'description' => 'Surface scratches on steel surface',
+                'severity_level' => 'medium',
+            ],
+        ],
+    ],
+
 ];

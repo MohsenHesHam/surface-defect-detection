@@ -46,6 +46,9 @@ class UserSettingController extends Controller
         }
 
         $setting = UserSetting::create($validated);
+        $setting->user()->update([
+            'theme' => $validated['theme'] ?? 'light',
+        ]);
 
         return response()->json($setting->load('user'), 201);
     }
@@ -83,6 +86,12 @@ class UserSettingController extends Controller
         ]);
 
         $userSetting->update($validated);
+
+        if (array_key_exists('theme', $validated)) {
+            $userSetting->user()->update([
+                'theme' => $validated['theme'],
+            ]);
+        }
 
         return response()->json($userSetting->load('user'), 200);
     }

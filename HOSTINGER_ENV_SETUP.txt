@@ -1,0 +1,144 @@
+═════════════════════════════════════════════════════════════════
+HOSTINGER .env CONFIGURATION - COMPLETE SETUP
+═════════════════════════════════════════════════════════════════
+
+على Hostinger، عدّل الـ .env وتأكد إن الإعدادات كالتالي:
+
+═════════════════════════════════════════════════════════════════
+1. APPLICATION SETTINGS
+═════════════════════════════════════════════════════════════════
+
+APP_NAME="Surface Defect Detection"
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=base64:YOUR_KEY_HERE  (يجب يكون موجود)
+APP_URL=https://lightgreen-crane-116703.hostingersite.com
+
+═════════════════════════════════════════════════════════════════
+2. STORAGE CONFIGURATION (الأهم!)
+═════════════════════════════════════════════════════════════════
+
+⭐ PUBLIC_STORAGE_URL=https://lightgreen-crane-116703.hostingersite.com/public/storage
+
+ملاحظة: لا تستخدم /storage فقط، يجب يكون /public/storage
+
+═════════════════════════════════════════════════════════════════
+3. DATABASE CONFIGURATION
+═════════════════════════════════════════════════════════════════
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=u608200362_php_database
+DB_USERNAME=u608200362_php
+DB_PASSWORD=YOUR_PASSWORD_HERE
+
+═════════════════════════════════════════════════════════════════
+4. CACHE & SESSION
+═════════════════════════════════════════════════════════════════
+
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+
+═════════════════════════════════════════════════════════════════
+FOLDER STRUCTURE ON HOSTINGER
+═════════════════════════════════════════════════════════════════
+
+public_html/
+├── public/
+│   ├── index.php
+│   ├── robots.txt
+│   └── storage/              ⭐ هنا الصور
+│       ├── avatars/          (الصور الشخصية)
+│       └── images/           (صور الـ scans)
+│
+├── app/
+├── config/
+├── routes/
+├── storage/
+│   └── logs/
+│
+└── .env  ⭐ المهم جداً
+
+═════════════════════════════════════════════════════════════════
+HOW FILES ARE SAVED
+═════════════════════════════════════════════════════════════════
+
+1. Avatar Upload:
+   - Saved to: public/storage/avatars/filename.png
+   - Stored in DB as: avatars/filename.png (relative path)
+   - Returned URL: https://lightgreen-crane-116703.hostingersite.com/public/storage/avatars/filename.png
+
+2. Scan Images:
+   - Saved to: public/storage/images/filename.jpg
+   - Stored in DB as: images/filename.jpg (relative path)
+   - Returned URL: https://lightgreen-crane-116703.hostingersite.com/public/storage/images/filename.jpg
+
+═════════════════════════════════════════════════════════════════
+COMMANDS TO RUN ON HOSTINGER (via SSH)
+═════════════════════════════════════════════════════════════════
+
+cd ~/public_html
+
+# Create storage directories if they don't exist
+mkdir -p public/storage/avatars
+mkdir -p public/storage/images
+
+# Set permissions
+chmod 755 public/storage
+chmod 755 public/storage/avatars
+chmod 755 public/storage/images
+
+# Clear Laravel cache
+php artisan cache:clear
+php artisan config:cache
+php artisan route:cache
+
+═════════════════════════════════════════════════════════════════
+TEST ENDPOINTS
+═════════════════════════════════════════════════════════════════
+
+1. Get Profile (should show avatar URL):
+   GET https://lightgreen-crane-116703.hostingersite.com/api/profile
+   Header: Authorization: Bearer TOKEN
+
+2. Upload Avatar:
+   POST https://lightgreen-crane-116703.hostingersite.com/api/upload-avatar
+   Form-Data: avatar (image file)
+   Header: Authorization: Bearer TOKEN
+
+3. Expected Avatar URL in Response:
+   https://lightgreen-crane-116703.hostingersite.com/public/storage/avatars/FILENAME.png
+
+═════════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═════════════════════════════════════════════════════════════════
+
+❌ Problem: Avatar URL shows as null
+✓ Solution: 
+   - Check PUBLIC_STORAGE_URL is set correctly in .env
+   - Run: php artisan config:cache
+
+❌ Problem: Upload gives permission error
+✓ Solution:
+   - Check folder permissions: chmod 755 public/storage/*
+   - Check folder exists: ls -la public/storage/
+
+❌ Problem: Image shows broken link
+✓ Solution:
+   - Verify file exists in public/storage/
+   - Check PUBLIC_STORAGE_URL in .env is correct
+   - Clear browser cache
+
+═════════════════════════════════════════════════════════════════
+FINAL VERIFICATION
+═════════════════════════════════════════════════════════════════
+
+✓ .env has APP_URL=https://lightgreen-crane-116703.hostingersite.com
+✓ .env has PUBLIC_STORAGE_URL=https://lightgreen-crane-116703.hostingersite.com/public/storage
+✓ public/storage/ folder exists and is writable
+✓ public/storage/avatars/ folder exists
+✓ public/storage/images/ folder exists
+✓ Laravel cache is cleared (php artisan config:cache)
+
+═════════════════════════════════════════════════════════════════

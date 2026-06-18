@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\UserStatisticController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ActivityController;
@@ -10,6 +10,7 @@ use App\Http\Controllers\ImageDefectController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ScanStatisticController;
 use App\Http\Controllers\UserSettingController;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [UserController::class, 'getProfile']);
     Route::put('/profile', [UserController::class, 'updateProfile']);
     Route::put('/profile/settings', [UserController::class, 'updateSettings']);
+    Route::post('/upload-avatar', [UserController::class, 'uploadAvatar']);
 
     // Activity routes
     Route::prefix('activities')->group(function () {
@@ -71,6 +73,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('scans')->group(function () {
         Route::get('/', [ScanController::class, 'index']);
         Route::post('/', [ScanController::class, 'store']);
+        Route::get('/{scan}/images', [ScanController::class, 'getScanImages']);
+        Route::get('/{scan}/statistics', [ScanController::class, 'getScanStatistics']);
+        Route::get('/{scan}/flutter-report', [ScanController::class, 'flutterReport']);
         Route::get('/{scan}', [ScanController::class, 'show']);
         Route::put('/{scan}', [ScanController::class, 'update']);
         Route::delete('/{scan}', [ScanController::class, 'destroy']);
@@ -125,11 +130,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Current user info
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        return response()->json((new UserResource($request->user()->fresh()))->resolve(), 200);
     });
 
     // Analytics
     Route::get('/analytics/summary', [\App\Http\Controllers\AnalyticsController::class, 'summary']);
     Route::get('/analytics/report/{scanId?}', [\App\Http\Controllers\AnalyticsController::class, 'report']);
     Route::get('/analytics/history', [\App\Http\Controllers\AnalyticsController::class, 'history']);
+    Route::get('/user-statistics/analytics', [UserStatisticController::class, 'analytics']);
+    Route::get('/user-statistics/dashboard', [UserStatisticController::class, 'dashboard']);
+    Route::get('/user-statistics/history', [UserStatisticController::class, 'history']);
+    Route::get('/user-statistics/recent_activity', [UserStatisticController::class, 'recentActivity']);
 });
