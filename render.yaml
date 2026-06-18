@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: surface-defect-detection
+    env: docker
+    plan: starter
+    region: oregon
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generator: secret
+      - key: APP_URL
+        value: https://surface-defect-detection.onrender.com
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: <YOUR_MYSQL_HOST>
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_DATABASE
+        value: <YOUR_DATABASE_NAME>
+      - key: DB_USERNAME
+        value: <YOUR_DATABASE_USER>
+      - key: DB_PASSWORD
+        value: <YOUR_DATABASE_PASSWORD>
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USERNAME
+        value: <YOUR_MAIL_USERNAME>
+      - key: MAIL_PASSWORD
+        value: <YOUR_MAIL_PASSWORD>
+      - key: MAIL_ENCRYPTION
+        value: tls

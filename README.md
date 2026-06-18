@@ -55,7 +55,31 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
- 
+
+## Docker + Render Deployment
+
+This repository now includes:
+- `Dockerfile` for building a production-ready Docker image
+- `.dockerignore` to keep the image small and clean
+- `render.yaml` for Render.com Docker deployment settings
+
+### Deploy on Render.com
+
+1. Push this repository to GitHub.
+2. Create a new Web Service on Render and choose "Docker" as the environment.
+3. Connect your GitHub repo and use the included `Dockerfile`.
+4. Add required environment variables in Render settings, including:
+   - `APP_KEY`
+   - `APP_URL`
+   - `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+   - `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_ENCRYPTION`
+5. Deploy.
+
+### Notes
+
+- Do not commit `.env` or sensitive keys to GitHub.
+- Use Render managed database credentials if you need a production database.
+- If Laravel needs a queue or Redis, configure those services separately in Render.
 
  app password for gmail otp send 
  
